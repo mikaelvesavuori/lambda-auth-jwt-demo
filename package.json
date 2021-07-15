@@ -1,0 +1,45 @@
+{
+  "name": "jwt-demo",
+  "version": "1.0.0",
+  "description": "Basic demonstration of authorizing a JWT with a Lambda Authorizer. This project uses the Client Credentials flow for machine-to-machine communication.",
+  "main": "src/index.ts",
+  "keywords": [
+    "jwt",
+    "lambda",
+    "lambda-authorizer",
+    "auth",
+    "auth-demo",
+    "serverless",
+    "serverless-framework"
+  ],
+  "scripts": {
+    "start": "npx sls offline",
+    "deploy": "npx sls deploy",
+    "remove": "npx sls remove"
+  },
+  "dependencies": {
+    "jsonwebtoken": "8",
+    "jwks-rsa": "2",
+    "node-fetch": "latest"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "latest",
+    "@types/jsonwebtoken": "latest",
+    "@types/node": "latest",
+    "@types/node-fetch": "latest",
+    "arkit": "latest",
+    "babel-loader": "latest",
+    "eslint": "latest",
+    "eslint-config-prettier": "latest",
+    "eslint-plugin-prettier": "latest",
+    "prettier": "latest",
+    "serverless": "2",
+    "serverless-offline": "latest",
+    "serverless-webpack": "5",
+    "ts-loader": "latest",
+    "ts-node": "latest",
+    "tslib": "latest",
+    "typescript": "latest",
+    "webpack": "5"
+  }
+}

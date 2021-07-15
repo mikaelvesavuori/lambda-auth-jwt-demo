@@ -1,0 +1,96 @@
+service: jwt-demo
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: ${opt:stage, 'dev'}
+  region: eu-north-1
+  memorySize: 1024
+  timeout: 10
+  logRetentionInDays: 14
+  versionFunctions: true
+  lambdaHashingVersion: 20201221
+  deploymentBucket:
+    blockPublicAccess: true
+    maxPreviousDeploymentArtifacts: 5
+    serverSideEncryption: AES256
+  stackTags:
+    Usage: ${self:service}
+  tags:
+    Usage: ${self:service}
+  apiGateway:
+    minimumCompressionSize: 1024
+  tracing:
+    apiGateway: true
+    lambda: true
+  iam:
+    role:
+      statements:
+      - Effect: Allow
+        Action:
+          - xray:PutTelemetryRecords
+          - xray:PutTraceSegments
+        Resource: "*"
+  environment:
+    JWKS_URI: '' # REQUIRED - Example: https://{{ID}}-{{RANDOM_ID}}.{{REGION}}.auth0.com/.well-known/jwks.json
+    AUDIENCE: '' # OPTIONAL - Example: https://{{RANDOM_ID}}.execute-api.{{REGION}}.amazonaws.com/dev/demo
+    ISSUER: '' # OPTIONAL - Example: https://{{ID}}-{{RANDOM_ID}}.{{REGION}}.auth0.com/
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+package:
+  individually: true
+  patterns:
+    - node_modules/aws-sdk/**
+    - node_modules/aws-lambda/**
+
+functions:
+  Demo:
+    handler: src/controllers/DemoController.handler
+    description: Demo controller to modify
+    events:
+      - http:
+          path: /demo
+          method: POST
+          authorizer:
+            name: Authorizer
+            resultTtlInSeconds: 30 # See: https://forum.serverless.com/t/api-gateway-custom-authorizer-caching-problems/4695
+            identitySource: method.request.header.Authorization
+            type: token
+  Authorizer:
+    handler: src/controllers/AuthController.handler
+    description: ${self:service} authorizer
+
+resources:
+  Resources:
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+    AuthFailureExpiredGatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: EXPIRED_TOKEN
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+    AuthFailureUnauthorizedGatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
